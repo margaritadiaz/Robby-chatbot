@@ -10,12 +10,19 @@ from langchain.vectorstores import FAISS
 import tempfile
 
 
-user_api_key = st.sidebar.text_input(
-    label="#### Your OpenAI API key 👇",
-    placeholder="Paste your openAI API key, sk-",
-    type="password")
+#user_api_key = st.sidebar.text_input(    label="#### Your API key 👇",    placeholder="Paste your API key, sk-",    type="password")
 
 uploaded_file = st.sidebar.file_uploader("upload", type="csv")
+
+with open('MyKey1.txt', 'r') as file:
+    user_api_key = file.read().strip()
+#Set the API key as an environment variable
+os.environ["OPENAI_API_KEY"] = user_api_key
+#OPENAI_API_KEY = api_key
+
+#loader = CSVLoader("AgnesProfile.csv", csv_args={'delimiter': ','})
+#data = loader.load()
+#st.write(data)
 
 if uploaded_file :
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
@@ -28,8 +35,7 @@ if uploaded_file :
     embeddings = OpenAIEmbeddings()
     vectors = FAISS.from_documents(data, embeddings)
 
-    chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo', openai_api_key=user_api_key),
-                                                                      retriever=vectors.as_retriever())
+    chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-4', openai_api_key=user_api_key), retriever=vectors.as_retriever())
 
     def conversational_chat(query):
         
@@ -42,7 +48,7 @@ if uploaded_file :
         st.session_state['history'] = []
 
     if 'generated' not in st.session_state:
-        st.session_state['generated'] = ["Hello ! Ask me anything about " + uploaded_file.name + " 🤗"]
+        st.session_state['generated'] = ["Hello ! Ask me anything about bluquist or your assessments results " + " 🤗"]
 
     if 'past' not in st.session_state:
         st.session_state['past'] = ["Hey ! 👋"]
@@ -55,7 +61,7 @@ if uploaded_file :
     with container:
         with st.form(key='my_form', clear_on_submit=True):
             
-            user_input = st.text_input("Query:", placeholder="Talk about your csv data here (:", key='input')
+            user_input = st.text_input("Query:", placeholder="Tell me your questions here (:", key='input')
             submit_button = st.form_submit_button(label='Send')
             
         if submit_button and user_input:
